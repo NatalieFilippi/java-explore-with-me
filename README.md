@@ -1,2 +1,2 @@
 # java-explore-with-me
-Template repository for ExploreWithMe project.
+Приложение, в котором можно предложить какое-либо событие от выставки до похода в кино и набрать компанию для участия в нём.
