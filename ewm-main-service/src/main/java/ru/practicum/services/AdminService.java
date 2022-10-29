@@ -1,22 +1,20 @@
 package ru.practicum.services;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.dao.CategoryRepository;
+import ru.practicum.dao.CompilationRepository;
+import ru.practicum.dao.EventRepository;
 import ru.practicum.dao.UserRepository;
-import ru.practicum.dto.CategoryDto;
-import ru.practicum.dto.NewCategoryDto;
-import ru.practicum.dto.NewUserDto;
-import ru.practicum.dto.UserDto;
-import ru.practicum.exception.ApiError;
-import ru.practicum.exception.ConflictException;
-import ru.practicum.mappers.CategoryMapper;
+import ru.practicum.dto.*;
+import ru.practicum.exception.ObjectNotFoundException;
+import ru.practicum.exception.ValidationException;
+import ru.practicum.mappers.CompilationMapper;
 import ru.practicum.mappers.UserMapper;
-import ru.practicum.model.Category;
+import ru.practicum.model.Compilation;
+import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
 import java.util.List;
@@ -27,11 +25,15 @@ import java.util.stream.Collectors;
 public class AdminService implements AdminSrv {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
+    private final CompilationRepository compilationRepository;
 
     @Autowired
-    public AdminService(UserRepository userRepository, CategoryRepository categoryRepository) {
+    public AdminService(UserRepository userRepository, CategoryRepository categoryRepository, EventRepository eventRepository, CompilationRepository compilationRepository) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.eventRepository = eventRepository;
+        this.compilationRepository = compilationRepository;
     }
 
     @Override
@@ -54,30 +56,56 @@ public class AdminService implements AdminSrv {
         userRepository.deleteById(id);
     }
 
+
     @Override
-    public CategoryDto createCategory(NewCategoryDto categoryDto) {
-        try {
-            Category category = categoryRepository.save(CategoryMapper.toCategory(categoryDto));
-            return CategoryMapper.toCategoryDto(category);
-        } catch (DataIntegrityViolationException ex) {
-            throw new ConflictException("could not execute statement; SQL [n/a]; constraint " + categoryDto.getName()
-                    + "; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement");
-        }
+    public CompilationDto createCompilation(NewCompilationDto compilationDto) {
+        List<Event> events = compilationDto.getEvents().stream()
+                .map(id -> eventRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException("Event with id=" + id + " was not found.")))
+                .collect(Collectors.toList());
+
+        Compilation compilation = CompilationMapper.toCompilation(compilationDto);
+        compilation.setEvents(events);
+        compilationRepository.save(compilation);
+        return CompilationMapper.toCompilationDto(compilation);
     }
 
     @Override
-    public void deleteCategory(long categoryId) {
-        categoryRepository.deleteById(categoryId);
+    public void deleteCompilation(long compId) {
+        compilationRepository.findById(compId).orElseThrow(() -> new ObjectNotFoundException("Compilation with id=" + compId + " was not found."));
+        compilationRepository.deleteById(compId);
     }
 
     @Override
-    public CategoryDto updateCategory(CategoryDto categoryDto) {
-        try {
-            Category category = categoryRepository.save(CategoryMapper.toCategory(categoryDto));
-            return CategoryMapper.toCategoryDto(category);
-        } catch (Exception ex) {
-            throw new ConflictException("could not execute statement; SQL [n/a]; constraint " + categoryDto.getName()
-                    + "; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement");
-        }
+    public void deleteEventFromCollection(long compId, long eventId) {
+        compilationRepository
+                .findEventFromCompilation(compId, eventId)
+                .orElseThrow(() -> new ObjectNotFoundException("Event " + eventId + " in the compilation with id=" + compId + " was not found."));
+        compilationRepository.deleteEventFromCompilation(compId, eventId);
     }
+
+    @Override
+    public void addEventToCompilation(long compId, long eventId) {
+        compilationRepository.findById(compId).orElseThrow(() -> new ObjectNotFoundException("Compilation with id=" + compId + " was not found."));
+
+        if (compilationRepository.findEventFromCompilation(compId, eventId).isPresent()) {
+            throw new ValidationException("The event " + eventId + " is already present in the compilation " + compId);
+        }
+
+        compilationRepository.addEventToCompilation(compId, eventId);
+    }
+
+    @Override
+    public void unpinCompilation(long compId) {
+        Compilation compilation = compilationRepository.findById(compId).orElseThrow(() -> new ObjectNotFoundException("Compilation with id=" + compId + " was not found."));
+        compilation.setPinned(false);
+        compilationRepository.save(compilation);
+    }
+
+    @Override
+    public void pinCompilation(long compId) {
+        Compilation compilation = compilationRepository.findById(compId).orElseThrow(() -> new ObjectNotFoundException("Compilation with id=" + compId + " was not found."));
+        compilation.setPinned(true);
+        compilationRepository.save(compilation);
+    }
+
 }

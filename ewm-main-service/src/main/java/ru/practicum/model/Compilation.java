@@ -18,7 +18,9 @@ public class Compilation {
     @Column(name = "compilation_id")
     private long id;
     @OneToMany
-    @JoinColumn(name = "event_id")
+    @JoinTable(name = "COMPILATION_EVENTS",
+            joinColumns = {@JoinColumn(name = "compilation_id")},
+            inverseJoinColumns = {@JoinColumn(name = "event_id")})
     private List<Event> events;
     @Column
     private boolean pinned;

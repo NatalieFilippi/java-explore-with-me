@@ -9,8 +9,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import ru.practicum.dao.CategoryRepository;
 import ru.practicum.model.Category;
 
-import java.util.List;
-
 @DataJpaTest
 public class CategoryTest {
 
@@ -37,9 +35,5 @@ public class CategoryTest {
         repository.save(category);
         Assertions.assertNotNull(category.getId());
         Assertions.assertEquals(category.getName(), "Концерты");
-        Category category2 = new Category();
-        category2.setName("Концерты");
-        repository.save(category2);
-        List<Category> categoryList = repository.findAll();
     }
 }

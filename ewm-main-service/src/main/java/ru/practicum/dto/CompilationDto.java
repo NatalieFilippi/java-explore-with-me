@@ -13,7 +13,7 @@ import java.util.List;
 public class CompilationDto {
     @NotNull
     private long id;
-    private List<Long> events;
+    private List<EventShortDto> events;
     @NotNull
     private boolean pinned;
     @NotNull

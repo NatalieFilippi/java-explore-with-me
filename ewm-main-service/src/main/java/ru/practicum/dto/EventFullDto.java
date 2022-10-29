@@ -26,7 +26,7 @@ public class EventFullDto {
     private String eventDate;
     @NotNull
     private boolean paid;
-    private int views;
+    private long views;
     @NotNull
     private UserShortDto initiator;
     @NotNull

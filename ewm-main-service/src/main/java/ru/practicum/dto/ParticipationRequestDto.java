@@ -3,7 +3,7 @@ package ru.practicum.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.model.Event;
+import ru.practicum.model.ParticipationRequest;
 
 @Data
 @AllArgsConstructor
@@ -13,5 +13,5 @@ public class ParticipationRequestDto {
     private long event;
     private String created;
     private long requester;
-    private Event.State status;
+    private ParticipationRequest.StateRequest status;
 }

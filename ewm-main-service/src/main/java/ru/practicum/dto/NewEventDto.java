@@ -3,8 +3,6 @@ package ru.practicum.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.model.Category;
-import ru.practicum.model.Location;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -30,13 +28,13 @@ public class NewEventDto {
     private String description;
 
     @NotNull
-    private Category category;
+    private long category;
 
     @NotNull
     private String eventDate;
     private boolean paid;
     @NotNull
-    private Location location;
+    private LocationDto location;
     private int participantLimit;
     private boolean requestModeration; //Нужна ли пре-модерация заявок на участие
 }

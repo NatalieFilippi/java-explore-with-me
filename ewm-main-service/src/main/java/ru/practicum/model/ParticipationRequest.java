@@ -23,5 +23,13 @@ public class ParticipationRequest {
     private LocalDateTime created;
     @Column
     private long requester;
-    private Event.State status;
+    @Enumerated(EnumType.STRING)
+    private StateRequest status;
+
+    public enum StateRequest {
+        PENDING,
+        CANCELED,
+        CONFIRMED,
+        REJECTED
+    }
 }
