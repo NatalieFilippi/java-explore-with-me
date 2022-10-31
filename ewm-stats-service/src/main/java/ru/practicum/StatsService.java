@@ -6,7 +6,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
