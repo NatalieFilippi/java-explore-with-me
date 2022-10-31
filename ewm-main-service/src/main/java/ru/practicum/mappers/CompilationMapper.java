@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class CompilationMapper {
 
-    public static Compilation toCompilation (NewCompilationDto compilationDto) {
+    public static Compilation toCompilation(NewCompilationDto compilationDto) {
         Compilation compilation = new Compilation();
         compilation.setPinned(compilationDto.isPinned());
         compilation.setTitle(compilationDto.getTitle());

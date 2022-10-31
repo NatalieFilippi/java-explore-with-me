@@ -35,11 +35,16 @@ public class StatsService {
 
         start = URLDecoder.decode(start, "UTF-8");
         end = URLDecoder.decode(end, "UTF-8");
-//        start = start.replace("T", " ");
-//        end = end.replace("T", " ");
-        LocalDateTime startTime = LocalDateTime.parse(start);
-        LocalDateTime endTime = LocalDateTime.parse(end);
-
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime startTime;
+        LocalDateTime endTime;
+        try {
+            startTime = LocalDateTime.parse(start);
+            endTime = LocalDateTime.parse(end);
+        } catch (Exception ex) {
+            startTime = LocalDateTime.parse(start, formatter);
+            endTime = LocalDateTime.parse(end, formatter);
+        }
 
         StringBuilder q = new StringBuilder();
         q.append("select NEW ru.practicum.ViewStats(app, uri, count(");

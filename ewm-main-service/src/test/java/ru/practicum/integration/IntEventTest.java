@@ -61,8 +61,9 @@ public class IntEventTest {
 
     @Test
     void saveEvent() {
-        categorySrv.createCategory(newCategoryDto);
+        CategoryDto categoryDto = categorySrv.createCategory(newCategoryDto);
         UserDto user = service.createUser(userDto);
+        eventDto.setCategory(categoryDto.getId());
         eventSrv.addEvent(user.getId(), eventDto);
         TypedQuery<Event> query = em.createQuery("Select e from Event e where e.title = :title", Event.class);
         Event event = query.setParameter("title", eventDto.getTitle()).getSingleResult();
