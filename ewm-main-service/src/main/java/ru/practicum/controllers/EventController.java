@@ -142,4 +142,60 @@ public class EventController {
         log.info("Admin update event with id={}", eventId);
         return service.adminUpdateEvent(eventId, eventDto);
     }
+
+    /*
+    Комментарии
+     */
+
+    @PostMapping("/users/{userId}/events/{eventId}/comments")
+    public CommentDto addComment(@PathVariable long userId,
+                                 @PathVariable long eventId,
+                                 @Valid @RequestBody NewCommentDto commentDto) {
+        log.info("User with id = {} added a comment {} to the event {}", userId, commentDto, eventId);
+        return service.addComment(userId, eventId, commentDto);
+    }
+
+    @DeleteMapping("/users/{userId}/events/{eventId}/comments/{comId}")
+    public void deleteComment(@PathVariable long userId,
+                              @PathVariable long eventId,
+                              @PathVariable long comId) {
+        log.info("User with id = {} deleted a comment {} to the event {}", userId, comId, eventId);
+        service.deleteComment(userId, eventId, comId);
+    }
+
+    @PatchMapping("/users/{userId}/events/{eventId}/comments/{comId}")
+    public CommentDto addComment(@PathVariable long userId,
+                                 @PathVariable long eventId,
+                                 @PathVariable long comId,
+                                 @RequestParam String text) {
+        log.info("User with id = {} updated a comment {} to the event {}", userId, comId, eventId);
+        return service.updateComment(userId, eventId, comId, text);
+    }
+
+    @PostMapping("/users/{userId}/events/{eventId}/comments/{comId}/like")
+    public void likeComment(@PathVariable long userId,
+                            @PathVariable long eventId,
+                            @PathVariable long comId) {
+        log.info("User with id = {} liked the comment {} to the event {}", userId, comId, eventId);
+        service.likeComment(userId, eventId, comId);
+    }
+
+    @DeleteMapping("/users/{userId}/events/{eventId}/comments/{comId}/like")
+    public void removeLike(@PathVariable long userId,
+                           @PathVariable long eventId,
+                           @PathVariable long comId) {
+        log.info("User with id = {} removed like the comment {} to the event {}", userId, comId, eventId);
+        service.removeLike(userId, eventId, comId);
+    }
+
+    @GetMapping("/users/{userId}/events/{eventId}/comments")
+    public List<CommentDto> getComments(@PathVariable long userId,
+                                  @PathVariable long eventId,
+                                  @RequestParam(required = false, defaultValue = "false") String sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
+                                  @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
+                                  @Positive @RequestParam(required = false, defaultValue = "10") int size) {
+        log.info("Get event {} comments with sort = {}, from = {}, size = {} by user", eventId, sort, from, size, userId);
+        return service.getComments(userId, eventId, sort, from,size);
+    }
+
 }

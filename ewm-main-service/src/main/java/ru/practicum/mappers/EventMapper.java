@@ -1,9 +1,7 @@
 package ru.practicum.mappers;
 
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.EventUpdateDto;
-import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.*;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 
 import java.time.LocalDateTime;
@@ -70,5 +68,17 @@ public class EventMapper {
                 .participantLimit(eventDto.getParticipantLimit())
                 .title(eventDto.getTitle())
                 .build();
+    }
+
+    public static CommentDto toCommentDto(Comment comment) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        CommentDto commentDto = new CommentDto();
+        commentDto.setEvent_id(comment.getEvent_id());
+        commentDto.setDate(comment.getCreated_on().format(formatter));
+        commentDto.setText(comment.getText());
+        commentDto.setAuthor(UserMapper.toUserShort(comment.getAuthor()));
+        commentDto.setRating(comment.getRating() == null ? 0 : comment.getRating().size());
+        commentDto.setId(comment.getId());
+        return commentDto;
     }
 }
