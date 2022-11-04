@@ -20,9 +20,6 @@ import java.util.List;
 public class StatsService {
 
     private final StatsRepository repository;
-    private static final DateTimeFormatterBuilder dt = new DateTimeFormatterBuilder()
-            .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 
     public void addHit(HitDto hitDto) {
         Hit hit = new Hit();
@@ -37,8 +34,8 @@ public class StatsService {
 
         start = URLDecoder.decode(start, StandardCharsets.UTF_8);
         end = URLDecoder.decode(end, StandardCharsets.UTF_8);
-        LocalDateTime startTime = LocalDateTime.parse(start, dt.toFormatter());
-        LocalDateTime endTime = LocalDateTime.parse(end, dt.toFormatter());
+        LocalDateTime startTime = LocalDateTime.parse(start);
+        LocalDateTime endTime = LocalDateTime.parse(end);
 
         if (unique) {
             if (uris != null && !uris.isEmpty()) {
