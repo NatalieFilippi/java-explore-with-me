@@ -27,7 +27,6 @@ public class NewEventDto {
     @Size(min = 20, message = "Минимальный размер описания события 20 символов")
     private String description;
 
-    @NotNull
     private long category;
 
     @NotNull

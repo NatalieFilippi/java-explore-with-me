@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class EventMapper {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static EventFullDto toEventFullDto(Event event) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return EventFullDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -34,7 +34,6 @@ public class EventMapper {
     }
 
     public static EventShortDto toEventShortDto(Event event) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return EventShortDto.builder()
                 .id(event.getId())
                 .eventDate(event.getEventDate().format(formatter))
@@ -49,7 +48,6 @@ public class EventMapper {
     }
 
     public static Event toEvent(NewEventDto eventDto) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return Event.builder()
                 .eventDate(eventDto.getEventDate() == null ? null : LocalDateTime.parse(eventDto.getEventDate(), formatter))
                 .annotation(eventDto.getAnnotation())
@@ -63,7 +61,6 @@ public class EventMapper {
     }
 
     public static Event toEvent(EventUpdateDto eventDto) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return Event.builder()
                 .eventDate(eventDto.getEventDate() == null ? null : LocalDateTime.parse(eventDto.getEventDate(), formatter))
                 .annotation(eventDto.getAnnotation())

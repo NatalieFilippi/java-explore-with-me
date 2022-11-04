@@ -1,5 +1,6 @@
 package ru.practicum.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.ParticipationRequestDto;
@@ -9,14 +10,11 @@ import java.util.List;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping(path = "/users/{userId}")
 public class RequestController {
 
     private final RequestSrv service;
-
-    public RequestController(RequestSrv service) {
-        this.service = service;
-    }
 
     @GetMapping("/events/{eventId}/requests")
     //Получение информации о запросах на участие в событии текущего пользователя

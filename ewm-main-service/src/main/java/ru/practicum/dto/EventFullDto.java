@@ -19,12 +19,12 @@ public class EventFullDto {
     private String title;
     @NotNull
     private String annotation;
+    @NotNull
     private String description;
     @NotNull
     private Category category;
     @NotNull
     private String eventDate;
-    @NotNull
     private boolean paid;
     private long views;
     @NotNull

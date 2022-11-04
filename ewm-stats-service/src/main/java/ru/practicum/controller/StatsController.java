@@ -1,21 +1,21 @@
-package ru.practicum;
+package ru.practicum.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.HitDto;
+import ru.practicum.service.StatsService;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping
+@RequiredArgsConstructor
 public class StatsController {
 
     private final StatsService service;
-
-    public StatsController(StatsService service) {
-        this.service = service;
-    }
 
     @PostMapping("/hit")
     public void addHit(@RequestBody HitDto hit) {

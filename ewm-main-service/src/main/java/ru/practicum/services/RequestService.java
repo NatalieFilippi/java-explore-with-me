@@ -1,5 +1,6 @@
 package ru.practicum.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.dao.RequestRepository;
 import ru.practicum.dto.EventFullDto;
@@ -15,16 +16,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class RequestService implements RequestSrv {
     private final RequestRepository requestRepository;
     private final EventSrv eventService;
     private final UserSrv userService;
-
-    public RequestService(RequestRepository requestRepository, EventSrv eventService, UserService userService) {
-        this.requestRepository = requestRepository;
-        this.eventService = eventService;
-        this.userService = userService;
-    }
 
     @Override
     public List<ParticipationRequestDto> getRequestsByEvent(long userId, long eventId) {
@@ -43,11 +39,11 @@ public class RequestService implements RequestSrv {
         ParticipationRequest request = findById(reqId);
         if (event.getConfirmedRequests() != 0 || event.isRequestModeration()) {
             List<ParticipationRequest> requests = requestRepository.getParticipationRequestsByEvent(eventId);
-            long count = requests.stream().filter(r -> r.getStatus() == ParticipationRequest.StateRequest.CONFIRMED).count();
+            int count = requestRepository.countByEventAndStatusEquals(eventId, ParticipationRequest.StateRequest.CONFIRMED);
             if (count == event.getParticipantLimit()) {
                 throw new ValidationException("The limit of participants in the event has been reached");
             }
-            if ((event.getParticipantLimit() - count) == 1) {
+            if ((event.getParticipantLimit() - count) == 1) { //если подтверждаем последний, то остальные отклонить
                 requests = requests.stream()
                         .filter(r -> r.getStatus() == ParticipationRequest.StateRequest.PENDING)
                         .collect(Collectors.toList());
@@ -110,7 +106,7 @@ public class RequestService implements RequestSrv {
         return RequestMapper.toParticipationRequestDto(requestRepository.save(request));
     }
 
-    public ParticipationRequest findById(long reqId) {
+    private ParticipationRequest findById(long reqId) {
         return requestRepository.findById(reqId).orElseThrow(() -> new ObjectNotFoundException("Participation request with id=" + reqId + " was not found."));
     }
 

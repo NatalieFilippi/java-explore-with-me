@@ -1,5 +1,6 @@
 package ru.practicum.services;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +20,7 @@ import ru.practicum.model.User;
 import javax.persistence.criteria.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,19 +28,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class EventService implements EventSrv {
     private final EventRepository eventRepository;
     private final UserSrv userService;
     private final CategoryRepository categoryRepository;
     private final EventClient client;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public EventService(EventRepository eventRepository, UserSrv userService, CategoryRepository categoryRepository, EventClient client) {
-        this.eventRepository = eventRepository;
-        this.userService = userService;
-        this.categoryRepository = categoryRepository;
-        this.client = client;
-    }
 
     @Override
     public EventFullDto findById(long eventId) {
@@ -47,13 +45,13 @@ public class EventService implements EventSrv {
                 .orElseThrow(() -> new ObjectNotFoundException("Event with id=" + eventId + " was not found.")));
     }
 
-    public Event getEvent(long eventId) {
+    private Event getEvent(long eventId) {
         return eventRepository
                 .findById(eventId)
                 .orElseThrow(() -> new ObjectNotFoundException("Event with id=" + eventId + " was not found."));
     }
 
-    public Category getCategory(long catId) {
+    private Category getCategory(long catId) {
         return categoryRepository
                 .findById(catId)
                 .orElseThrow(() -> new ObjectNotFoundException("Category with id=" + catId + " was not found."));
@@ -65,88 +63,78 @@ public class EventService implements EventSrv {
                                        String paid,
                                        String rangeEnd,
                                        String rangeStart,
-                                       String onlyAvailable,
+                                       boolean onlyAvailable,
                                        int size,
                                        int from,
                                        String sort) throws UnsupportedEncodingException {
         Page<Event> events = findAllForUser(text, categories, paid, rangeEnd, rangeStart, size, from, sort);
-        try {
-            Boolean o = Boolean.parseBoolean(onlyAvailable);
-            if (o == true) {
-                Set<Event> availableEvents = eventRepository.getAvailableEvents();
-                return events.stream()
-                        .filter(e -> availableEvents.contains(e))
-                        .map(EventMapper::toEventShortDto)
-                        .collect(Collectors.toList());
-            }
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-            //не учитывать в фильтре
+        if (onlyAvailable) {
+            Set<Event> availableEvents = eventRepository.getAvailableEvents();
+            return events.stream()
+                    .filter(availableEvents::contains)
+                    .map(EventMapper::toEventShortDto)
+                    .collect(Collectors.toList());
         }
+
         return events.stream()
                 .map(EventMapper::toEventShortDto)
                 .collect(Collectors.toList());
     }
 
-    public Page<Event> findAllForUser(String text,
-                                      List<Long> categories,
-                                      String paid,
-                                      String rangeEnd,
-                                      String rangeStart,
-                                      int size,
-                                      int from,
-                                      String sort
+    private Page<Event> findAllForUser(String text,
+                                       List<Long> categories,
+                                       String paid,
+                                       String rangeEnd,
+                                       String rangeStart,
+                                       int size,
+                                       int from,
+                                       String sort
     ) throws UnsupportedEncodingException {
-        Specification specification = new Specification<Event>() {
-            @Override
-            public Predicate toPredicate(Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                List<Predicate> predicates = new ArrayList<>();
+        Specification<Event> specification = (Specification<Event>) (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-                query.orderBy(criteriaBuilder.desc(root.get("eventDate")));
+            query.orderBy(criteriaBuilder.desc(root.get("eventDate")));
 
-                if (!text.isBlank()) {
-                    Predicate predicateAnnotation = criteriaBuilder.like(root.get("annotation"), "%" + text + "%");
-                    Predicate predicateDescription = criteriaBuilder.like(root.get("description"), "%" + text + "%");
-                    predicates.add(criteriaBuilder.or(predicateAnnotation, predicateDescription));
-                }
-
-                try {
-                    Boolean p = Boolean.parseBoolean(paid);
-                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("paid"), p)));
-                } catch (Exception ex) {
-                    //фильтр не используем
-                }
-
-                if (categories != null && !categories.isEmpty()) {
-                    for (Long categoriesId : categories) {
-                        predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("category"), categoriesId)));
-                    }
-                }
-
-                if (!rangeStart.isBlank()) {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
-                        Predicate onStart = criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), start);
-                        predicates.add(onStart);
-                    } catch (DateTimeException ex) {
-                        throw new ValidationException("The rangeStart must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
-                    }
-                }
-
-                if (!rangeEnd.isBlank()) {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        LocalDateTime end = LocalDateTime.parse(rangeEnd, formatter);
-                        Predicate onEnd = criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), end);
-                        predicates.add(onEnd);
-                    } catch (DateTimeException ex) {
-                        throw new ValidationException("The rangeEnd must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
-                    }
-                }
-
-                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+            if (!text.isBlank()) {
+                Predicate predicateAnnotation = criteriaBuilder.like(root.get("annotation"), "%" + text + "%");
+                Predicate predicateDescription = criteriaBuilder.like(root.get("description"), "%" + text + "%");
+                predicates.add(criteriaBuilder.or(predicateAnnotation, predicateDescription));
             }
+
+            try {
+                Boolean p = Boolean.parseBoolean(paid);
+                predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("paid"), p)));
+            } catch (Exception ex) {
+                //фильтр не используем
+            }
+
+            if (categories != null && !categories.isEmpty()) {
+                for (Long categoriesId : categories) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("category"), categoriesId)));
+                }
+            }
+
+            if (!rangeStart.isBlank()) {
+                try {
+                    LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
+                    Predicate onStart = criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), start);
+                    predicates.add(onStart);
+                } catch (DateTimeException ex) {
+                    throw new ValidationException("The rangeStart must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
+                }
+            }
+
+            if (!rangeEnd.isBlank()) {
+                try {
+                    LocalDateTime end = LocalDateTime.parse(rangeEnd, formatter);
+                    Predicate onEnd = criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), end);
+                    predicates.add(onEnd);
+                } catch (DateTimeException ex) {
+                    throw new ValidationException("The rangeEnd must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
+                }
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
 
         List<Event> events = eventRepository.findAll(specification);
@@ -258,7 +246,6 @@ public class EventService implements EventSrv {
     @Override
     public EventFullDto adminUpdateEvent(long eventId, AdminUpdateEventRequest eventDto) {
         Event event = getEvent(eventId);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         if (eventDto.getEventDate() != null) {
             event.setEventDate(LocalDateTime.parse(eventDto.getEventDate(), formatter));
         }
@@ -300,71 +287,66 @@ public class EventService implements EventSrv {
                 .collect(Collectors.toList());
     }
 
-    public Page<Event> findAllForAdmin(List<Long> usersIds,
-                                       List<Long> categoriesIds,
-                                       List<Event.State> states,
-                                       String rangeStart,
-                                       String rangeEnd,
-                                       int from,
-                                       int size
+    private Page<Event> findAllForAdmin(List<Long> usersIds,
+                                        List<Long> categoriesIds,
+                                        List<Event.State> states,
+                                        String rangeStart,
+                                        String rangeEnd,
+                                        int from,
+                                        int size
     ) {
         Pageable pageable = PageRequest.of(from / size, size);
-        Specification specification = new Specification<Event>() {
-            @Override
-            public Predicate toPredicate(Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                List<Predicate> predicates = new ArrayList<>();
+        Specification<Event> specification = (Specification<Event>) (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-                if (usersIds != null && !usersIds.isEmpty()) {
-                    for (Long usersId : usersIds) {
-                        predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("initiator"), usersId)));
-                    }
+            if (usersIds != null && !usersIds.isEmpty()) {
+                for (Long usersId : usersIds) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("initiator"), usersId)));
                 }
-
-                if (categoriesIds != null && !categoriesIds.isEmpty()) {
-                    for (Long categoriesId : categoriesIds) {
-                        predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("category"), categoriesId)));
-                    }
-                }
-
-                if (states != null) {
-                    for (Event.State state : states) {
-                        predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("state"), state)));
-                    }
-                }
-
-                if (!rangeStart.isBlank()) {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
-                        Predicate onStart = criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), start);
-                        predicates.add(onStart);
-                    } catch (DateTimeException ex) {
-                        throw new ValidationException("The rangeStart must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
-                    }
-                }
-
-                if (!rangeEnd.isBlank()) {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        LocalDateTime end = LocalDateTime.parse(rangeEnd, formatter);
-                        Predicate onEnd = criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), end);
-                        predicates.add(onEnd);
-                    } catch (DateTimeException ex) {
-                        throw new ValidationException("The rangeEnd must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
-                    }
-                }
-
-                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
             }
+
+            if (categoriesIds != null && !categoriesIds.isEmpty()) {
+                for (Long categoriesId : categoriesIds) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("category"), categoriesId)));
+                }
+            }
+
+            if (states != null) {
+                for (Event.State state : states) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("state"), state)));
+                }
+            }
+
+            if (!rangeStart.isBlank()) {
+                try {
+                    LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
+                    Predicate onStart = criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), start);
+                    predicates.add(onStart);
+                } catch (DateTimeException ex) {
+                    throw new ValidationException("The rangeStart must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
+                }
+            }
+
+            if (!rangeEnd.isBlank()) {
+                try {
+                    LocalDateTime end = LocalDateTime.parse(rangeEnd, formatter);
+                    Predicate onEnd = criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), end);
+                    predicates.add(onEnd);
+                } catch (DateTimeException ex) {
+                    throw new ValidationException("The rangeEnd must have a date in the format \"yyyy-MM-dd HH:mm:ss\"");
+                }
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
         return eventRepository.findAll(specification, pageable);
     }
 
-    private Long getViews(Long id) throws UnsupportedEncodingException {
+    private Long getViews(Long id) {
         String uri = "/events/";
-        String start = URLEncoder.encode(LocalDateTime.now().minusYears(1).toString(), "UTF-8");
-        String end = URLEncoder.encode(LocalDateTime.now().toString(), "UTF-8");
-        String parameterId = uri + String.valueOf(id);
+        String start = URLEncoder.encode(LocalDateTime.now().minusYears(1).toString(), StandardCharsets.UTF_8);
+        String end = URLEncoder.encode(LocalDateTime.now().toString(), StandardCharsets.UTF_8);
+        String parameterId = uri + id;
 
         ResponseEntity<Object> views = client.getHits(start, end, parameterId, "false");
         List<ViewStats> v = (List<ViewStats>) views.getBody();

@@ -20,11 +20,9 @@ public class EventUpdateDto {
     @NotNull
     private String annotation;
     private String description;
-    @NotNull
     private long category;
     @NotNull
     private String eventDate;
-    @NotNull
     private boolean paid;
     private int confirmedRequests;
     private int participantLimit;

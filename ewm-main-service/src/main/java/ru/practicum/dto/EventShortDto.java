@@ -23,7 +23,6 @@ public class EventShortDto {
     private Category category;
     @NotNull
     private String eventDate;
-    @NotNull
     private boolean paid;
     private long views;
     @NotNull

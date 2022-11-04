@@ -13,7 +13,6 @@ import ru.practicum.dto.CategoryDto;
 import ru.practicum.dto.NewCategoryDto;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.model.Category;
-import ru.practicum.services.AdminService;
 import ru.practicum.services.CategorySrv;
 
 import javax.persistence.EntityManager;
@@ -30,15 +29,12 @@ import static org.hamcrest.core.IsNull.notNullValue;
 public class IntCatTest {
 
     private final EntityManager em;
-    private final AdminService service;
     private final CategorySrv categorySrv;
-    private static CategoryDto categoryDto;
     private static NewCategoryDto newCategoryDto;
 
     @BeforeEach
     @Sql({"/schema.sql"})
     public void setUp() {
-        categoryDto = new CategoryDto(1, "Концерты");
         newCategoryDto = new NewCategoryDto("Выставка");
     }
 

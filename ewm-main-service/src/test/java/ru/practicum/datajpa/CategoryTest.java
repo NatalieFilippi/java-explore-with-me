@@ -13,11 +13,11 @@ import ru.practicum.model.Category;
 public class CategoryTest {
 
     @Autowired
-    CategoryRepository repository;
+    private CategoryRepository repository;
     @Autowired
     private TestEntityManager em;
 
-    private static Category category;
+    private Category category;
 
     @BeforeEach
     void beforeEach() {
@@ -33,7 +33,6 @@ public class CategoryTest {
     @Test
     void saveCategory() {
         repository.save(category);
-        Assertions.assertNotNull(category.getId());
         Assertions.assertEquals(category.getName(), "Концерты");
     }
 }

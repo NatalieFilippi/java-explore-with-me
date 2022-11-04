@@ -10,9 +10,9 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.*;
 import ru.practicum.model.Event;
-import ru.practicum.services.AdminService;
 import ru.practicum.services.CategorySrv;
 import ru.practicum.services.EventSrv;
+import ru.practicum.services.UserSrv;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -31,7 +31,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 public class IntEventTest {
 
     private final EntityManager em;
-    private final AdminService service;
+    private final UserSrv userSrv;
     private final EventSrv eventSrv;
     private final CategorySrv categorySrv;
     private static NewCategoryDto newCategoryDto;
@@ -62,7 +62,7 @@ public class IntEventTest {
     @Test
     void saveEvent() {
         CategoryDto categoryDto = categorySrv.createCategory(newCategoryDto);
-        UserDto user = service.createUser(userDto);
+        UserDto user = userSrv.createUser(userDto);
         eventDto.setCategory(categoryDto.getId());
         eventSrv.addEvent(user.getId(), eventDto);
         TypedQuery<Event> query = em.createQuery("Select e from Event e where e.title = :title", Event.class);
