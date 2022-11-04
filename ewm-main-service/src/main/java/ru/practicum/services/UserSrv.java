@@ -10,6 +10,7 @@ import java.util.Set;
 
 public interface UserSrv {
     User findById(long userId);
+
     UserDto createUser(NewUserDto userDto);
 
     List<UserDto> findAllUsers(Set<Long> ids, int from, int size);
