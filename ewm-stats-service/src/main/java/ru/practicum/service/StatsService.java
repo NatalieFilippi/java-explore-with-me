@@ -11,6 +11,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.List;
 
 @Service
@@ -18,7 +20,13 @@ import java.util.List;
 public class StatsService {
 
     private final StatsRepository repository;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder()
+            .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+            .optionalStart()
+            .appendFraction( ChronoField.MICRO_OF_SECOND , 1 , 9 , true )
+            .optionalEnd()
+            .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            .toFormatter();
 
     public void addHit(HitDto hitDto) {
         Hit hit = new Hit();
@@ -32,11 +40,9 @@ public class StatsService {
     public List<ViewStats> getStats(String start, String end, List<String> uris, boolean unique) {
 
         start = URLDecoder.decode(start, StandardCharsets.UTF_8);
-        start = start.replace("T", " ").substring(0, !start.contains(".") ? start.length() : start.indexOf("."));
         end = URLDecoder.decode(end, StandardCharsets.UTF_8);
-        end = end.replace("T", " ").substring(0, !end.contains(".") ? end.length() : end.indexOf("."));
-        LocalDateTime startTime = LocalDateTime.parse(start, formatter);
-        LocalDateTime endTime = LocalDateTime.parse(end, formatter);
+        LocalDateTime startTime = LocalDateTime.parse(start, dateTimeFormatter);
+        LocalDateTime endTime = LocalDateTime.parse(end, dateTimeFormatter);
 
         if (unique) {
             if (uris != null && !uris.isEmpty()) {

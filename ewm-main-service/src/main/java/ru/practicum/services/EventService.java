@@ -18,7 +18,6 @@ import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
 import javax.persistence.criteria.*;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
@@ -60,13 +59,13 @@ public class EventService implements EventSrv {
     @Override
     public List<EventShortDto> findAll(String text,
                                        List<Long> categories,
-                                       String paid,
+                                       boolean paid,
                                        String rangeEnd,
                                        String rangeStart,
                                        boolean onlyAvailable,
                                        int size,
                                        int from,
-                                       String sort) throws UnsupportedEncodingException {
+                                       String sort) {
         Page<Event> events = findAllForUser(text, categories, paid, rangeEnd, rangeStart, size, from, sort);
         if (onlyAvailable) {
             Set<Event> availableEvents = eventRepository.getAvailableEvents();
@@ -83,14 +82,14 @@ public class EventService implements EventSrv {
 
     private Page<Event> findAllForUser(String text,
                                        List<Long> categories,
-                                       String paid,
+                                       boolean paid,
                                        String rangeEnd,
                                        String rangeStart,
                                        int size,
                                        int from,
                                        String sort
-    ) throws UnsupportedEncodingException {
-        Specification<Event> specification = (Specification<Event>) (root, query, criteriaBuilder) -> {
+    ) {
+        Specification<Event> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             query.orderBy(criteriaBuilder.desc(root.get("eventDate")));
@@ -101,12 +100,7 @@ public class EventService implements EventSrv {
                 predicates.add(criteriaBuilder.or(predicateAnnotation, predicateDescription));
             }
 
-            try {
-                Boolean p = Boolean.parseBoolean(paid);
-                predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("paid"), p)));
-            } catch (Exception ex) {
-                //фильтр не используем
-            }
+            predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("paid"), paid)));
 
             if (categories != null && !categories.isEmpty()) {
                 for (Long categoriesId : categories) {
@@ -296,7 +290,7 @@ public class EventService implements EventSrv {
                                         int size
     ) {
         Pageable pageable = PageRequest.of(from / size, size);
-        Specification<Event> specification = (Specification<Event>) (root, query, criteriaBuilder) -> {
+        Specification<Event> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (usersIds != null && !usersIds.isEmpty()) {

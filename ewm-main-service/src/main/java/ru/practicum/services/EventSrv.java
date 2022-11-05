@@ -9,7 +9,7 @@ import java.util.List;
 public interface EventSrv {
     EventFullDto findById(long eventId);
 
-    List<EventShortDto> findAll(String text, List<Long> categories, String paid, String rangeEnd, String rangeStart, boolean onlyAvailable, int size, int from, String sort) throws UnsupportedEncodingException;
+    List<EventShortDto> findAll(String text, List<Long> categories, boolean paid, String rangeEnd, String rangeStart, boolean onlyAvailable, int size, int from, String sort) throws UnsupportedEncodingException;
 
     List<EventShortDto> getUserEvents(long userId, int from, int size);
 

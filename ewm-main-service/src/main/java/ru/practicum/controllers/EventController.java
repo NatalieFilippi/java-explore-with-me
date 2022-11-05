@@ -34,11 +34,11 @@ public class EventController {
     public List<EventShortDto> getEvents(HttpServletRequest request,
                                          @RequestParam(required = false, defaultValue = "") String text,
                                          @RequestParam(required = false, defaultValue = "") List<Long> categories,
-                                         @RequestParam(required = false, defaultValue = "all") String paid,
+                                         @RequestParam(required = false, defaultValue = "false") boolean paid,
                                          @RequestParam(required = false, defaultValue = "") String rangeStart,
                                          @RequestParam(required = false, defaultValue = "") String rangeEnd,
-                                         @RequestParam(required = false, defaultValue = "all") boolean onlyAvailable,
-                                         @RequestParam(required = false, defaultValue = "false") String sort,
+                                         @RequestParam(required = false, defaultValue = "false") boolean onlyAvailable,
+                                         @RequestParam(required = false, defaultValue = "EVENT_DATE") String sort,
                                          @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
                                          @Positive @RequestParam(required = false, defaultValue = "10") int size) throws UnsupportedEncodingException {
         sendHit(request);

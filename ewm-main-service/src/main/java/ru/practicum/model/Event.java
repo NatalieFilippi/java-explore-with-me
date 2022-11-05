@@ -26,6 +26,7 @@ public class Event {
     @Column(name = "event_date")
     private LocalDateTime eventDate;
     private boolean paid;
+    @Transient
     private long views;
     @ManyToOne
     @JoinColumn(name = "initiator")

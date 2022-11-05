@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS EVENTS (
                                     category_id BIGINT REFERENCES CATEGORIES(category_id),
                                     event_date TIMESTAMP,
                                     paid BOOLEAN,
-                                    views INT,
                                     state VARCHAR,
                                     initiator BIGINT REFERENCES USERS(user_id) ON DELETE CASCADE,
                                     location BIGINT REFERENCES LOCATIONS(location_id),
