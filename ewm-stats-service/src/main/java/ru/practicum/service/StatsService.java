@@ -23,7 +23,7 @@ public class StatsService {
     private static final DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder()
             .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
             .optionalStart()
-            .appendFraction( ChronoField.MICRO_OF_SECOND , 1 , 9 , true )
+            .appendFraction(ChronoField.MICRO_OF_SECOND, 1, 9, true)
             .optionalEnd()
             .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             .toFormatter();
