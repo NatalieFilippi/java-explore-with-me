@@ -320,16 +320,16 @@ public class EventService implements EventSrv {
     @Override
     public List<CommentDto> getComments(long userId, long eventId, String sort, int from, int size) {
         StringBuilder q = new StringBuilder();
-        q.append("select c from Comment c where c.event_id =:eventId order by ");
+        q.append("select c from Comment c where c.eventId =:eventId order by ");
         switch (sort) {
             case "RATING":
                 q.append("c.rating.size desc");
                 break;
             case "NEW_DATE":
-                q.append("c.created_on asc");
+                q.append("c.createdOn asc");
                 break;
             case "OLD_DATE":
-                q.append("c.created_on desc");
+                q.append("c.createdOn desc");
         }
 
         TypedQuery<Comment> query = em.createQuery(q.toString(), Comment.class);
