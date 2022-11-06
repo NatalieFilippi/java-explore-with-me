@@ -15,6 +15,6 @@ public class CommentDto {
     private String date;
     private int rating;
     private UserShortDto author;
-    private long event_id;
+    private long eventId;
     private long id;
 }

@@ -22,12 +22,12 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "author_id")
     private User author;
-    @Column
-    private long event_id;
-    @Column
-    private LocalDateTime created_on;
+    @Column(name = "event_id")
+    private long eventId;
+    @Column(name = "created_on")
+    private LocalDateTime createdOn;
     @Column(name = "user_id")
     @ElementCollection
-    @CollectionTable(name="ratings", joinColumns=@JoinColumn(name="comment_id"))
+    @CollectionTable(name = "ratings", joinColumns = @JoinColumn(name = "comment_id"))
     private Set<Long> rating;
 }
