@@ -1,7 +1,6 @@
 package ru.practicum.integration;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,13 +12,10 @@ import ru.practicum.dto.*;
 import ru.practicum.exception.ObjectNotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.model.Comment;
-import ru.practicum.model.Event;
-import ru.practicum.services.AdminService;
 import ru.practicum.services.CategorySrv;
 import ru.practicum.services.EventSrv;
+import ru.practicum.services.UserSrv;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -30,12 +26,9 @@ import static org.hamcrest.core.IsNull.notNullValue;
 
 @Transactional
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@SpringBootTest(
-        properties = "db.name=test_ewm",
-        webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class IntCommentTest {
-    private final EntityManager em;
-    private final AdminService service;
+    private final UserSrv service;
     private final EventSrv eventSrv;
     private final CategorySrv categorySrv;
     private static NewCategoryDto newCategoryDto;
@@ -58,16 +51,7 @@ public class IntCommentTest {
                 10,
                 true);
         commentDto = new NewCommentDto("new Comment");
-
-
-
     }
-
-    @AfterEach
-    @Sql({"/test/resources/clean.sql"})
-    void clean() {
-    }
-
 
     @Test
     void saveComment() {
@@ -188,7 +172,7 @@ public class IntCommentTest {
         Assertions.assertEquals(exception.getMessage(), "The user " + user.getId() + " did not like the comment " + comment.getId());
     }
 
-    /*@Test
+    @Test
     void getComments() {
         CategoryDto categoryDto = categorySrv.createCategory(newCategoryDto);
         UserDto user = service.createUser(userDto);
@@ -214,5 +198,5 @@ public class IntCommentTest {
 
         comments = eventSrv.getComments(user.getId(), event.getId(), "RATING", 0, 10);
         assertThat(comments.get(0).getId(), equalTo(comment2.getId()));
-    }*/
+    }
 }

@@ -42,15 +42,6 @@ public class EventService implements EventSrv {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EntityManager em;
 
-    public EventService(EventRepository eventRepository, CommentRepository commentRepository, UserSrv userService, CategoryRepository categoryRepository, EventClient client, EntityManager em) {
-        this.eventRepository = eventRepository;
-        this.commentRepository = commentRepository;
-        this.userService = userService;
-        this.categoryRepository = categoryRepository;
-        this.client = client;
-        this.em = em;
-    }
-
     @Override
     public EventFullDto findById(long eventId) {
         return EventMapper.toEventFullDto(eventRepository
