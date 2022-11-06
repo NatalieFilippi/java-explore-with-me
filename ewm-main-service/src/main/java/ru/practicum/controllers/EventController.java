@@ -164,10 +164,10 @@ public class EventController {
     }
 
     @PatchMapping("/users/{userId}/events/{eventId}/comments/{comId}")
-    public CommentDto addComment(@PathVariable long userId,
-                                 @PathVariable long eventId,
-                                 @PathVariable long comId,
-                                 @RequestParam String text) {
+    public CommentDto updateComment(@PathVariable long userId,
+                                    @PathVariable long eventId,
+                                    @PathVariable long comId,
+                                    @RequestParam String text) {
         log.info("User with id = {} updated a comment {} to the event {}", userId, comId, eventId);
         return service.updateComment(userId, eventId, comId, text);
     }
@@ -190,12 +190,12 @@ public class EventController {
 
     @GetMapping("/users/{userId}/events/{eventId}/comments")
     public List<CommentDto> getComments(@PathVariable long userId,
-                                  @PathVariable long eventId,
-                                  @RequestParam(required = false, defaultValue = "false") String sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
-                                  @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
-                                  @Positive @RequestParam(required = false, defaultValue = "10") int size) {
-        log.info("Get event {} comments with sort = {}, from = {}, size = {} by user", eventId, sort, from, size, userId);
-        return service.getComments(userId, eventId, sort, from,size);
+                                        @PathVariable long eventId,
+                                        @RequestParam(required = false, defaultValue = "RATING") String sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
+                                        @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
+                                        @Positive @RequestParam(required = false, defaultValue = "10") int size) {
+        log.info("Get event {} comments with sort = {}, from = {}, size = {} by user {}", eventId, sort, from, size, userId);
+        return service.getComments(userId, eventId, sort, from, size);
     }
 
 }
