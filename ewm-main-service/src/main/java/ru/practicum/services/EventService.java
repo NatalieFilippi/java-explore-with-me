@@ -277,9 +277,9 @@ public class EventService implements EventSrv {
         getEvent(eventId);
         Comment newComment = new Comment();
         newComment.setText(commentDto.getText());
-        newComment.setEvent_id(eventId);
+        newComment.setEventId(eventId);
         newComment.setAuthor(user);
-        newComment.setCreated_on(LocalDateTime.now());
+        newComment.setCreatedOn(LocalDateTime.now());
         newComment.setRating(new HashSet<>());
         commentRepository.save(newComment);
         return EventMapper.toCommentDto(newComment);
