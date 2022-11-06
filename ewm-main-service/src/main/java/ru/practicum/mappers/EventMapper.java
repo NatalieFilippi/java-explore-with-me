@@ -73,8 +73,8 @@ public class EventMapper {
     public static CommentDto toCommentDto(Comment comment) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         CommentDto commentDto = new CommentDto();
-        commentDto.setEvent_id(comment.getEvent_id());
-        commentDto.setDate(comment.getCreated_on().format(formatter));
+        commentDto.setEventId(comment.getEventId());
+        commentDto.setDate(comment.getCreatedOn().format(formatter));
         commentDto.setText(comment.getText());
         commentDto.setAuthor(UserMapper.toUserShort(comment.getAuthor()));
         commentDto.setRating(comment.getRating() == null ? 0 : comment.getRating().size());
