@@ -189,14 +189,14 @@ public class IntCommentTest {
         eventSrv.likeComment(user.getId(), event.getId(), comment2.getId());
         eventSrv.likeComment(newUser.getId(), event.getId(), comment2.getId());
 
-        List<CommentDto> comments = eventSrv.getComments(user.getId(), event.getId(), "NEW_DATE", 0, 10);
+        List<CommentDto> comments = eventSrv.getComments(user.getId(), event.getId(), Comment.SortComment.NEW_DATE, 0, 10);
         assertThat(comments.size(), equalTo(3));
         assertThat(comments.get(0), equalTo(comment));
 
-        comments = eventSrv.getComments(user.getId(), event.getId(), "OLD_DATE", 0, 10);
+        comments = eventSrv.getComments(user.getId(), event.getId(), Comment.SortComment.OLD_DATE, 0, 10);
         assertThat(comments.get(0), equalTo(comment3));
 
-        comments = eventSrv.getComments(user.getId(), event.getId(), "RATING", 0, 10);
+        comments = eventSrv.getComments(user.getId(), event.getId(), Comment.SortComment.RATING, 0, 10);
         assertThat(comments.get(0).getId(), equalTo(comment2.getId()));
     }
 }

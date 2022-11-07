@@ -2,14 +2,18 @@ package ru.practicum.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.EventClient;
 import ru.practicum.dto.*;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.services.EventSrv;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.io.UnsupportedEncodingException;
@@ -20,6 +24,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@Validated
 public class EventController {
 
     private final EventSrv service;
@@ -34,10 +39,10 @@ public class EventController {
     public List<EventShortDto> getEvents(HttpServletRequest request,
                                          @RequestParam(required = false, defaultValue = "") String text,
                                          @RequestParam(required = false, defaultValue = "") List<Long> categories,
-                                         @RequestParam(required = false, defaultValue = "false") boolean paid,
+                                         @RequestParam(required = false) boolean paid,
                                          @RequestParam(required = false, defaultValue = "") String rangeStart,
                                          @RequestParam(required = false, defaultValue = "") String rangeEnd,
-                                         @RequestParam(required = false, defaultValue = "false") boolean onlyAvailable,
+                                         @RequestParam(required = false) boolean onlyAvailable,
                                          @RequestParam(required = false, defaultValue = "EVENT_DATE") String sort,
                                          @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
                                          @Positive @RequestParam(required = false, defaultValue = "10") int size) throws UnsupportedEncodingException {
@@ -167,7 +172,7 @@ public class EventController {
     public CommentDto updateComment(@PathVariable long userId,
                                     @PathVariable long eventId,
                                     @PathVariable long comId,
-                                    @RequestParam String text) {
+                                    @Min(2) @Max(2000) @RequestParam String text) {
         log.info("User with id = {} updated a comment {} to the event {}", userId, comId, eventId);
         return service.updateComment(userId, eventId, comId, text);
     }
@@ -191,9 +196,9 @@ public class EventController {
     @GetMapping("/users/{userId}/events/{eventId}/comments")
     public List<CommentDto> getComments(@PathVariable long userId,
                                         @PathVariable long eventId,
-                                        @RequestParam(required = false, defaultValue = "RATING") String sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
-                                        @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
-                                        @Positive @RequestParam(required = false, defaultValue = "10") int size) {
+                                        @RequestParam(defaultValue = "RATING") Comment.SortComment sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
+                                        @PositiveOrZero @RequestParam(defaultValue = "0") int from,
+                                        @Positive @RequestParam(defaultValue = "10") int size) {
         log.info("Get event {} comments with sort = {}, from = {}, size = {} by user {}", eventId, sort, from, size, userId);
         return service.getComments(userId, eventId, sort, from, size);
     }

@@ -19,8 +19,6 @@ import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +38,6 @@ public class EventService implements EventSrv {
     private final CategoryRepository categoryRepository;
     private final EventClient client;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private final EntityManager em;
 
     @Override
     public EventFullDto findById(long eventId) {
@@ -293,6 +290,7 @@ public class EventService implements EventSrv {
 
     @Override
     public void likeComment(long userId, long eventId, long comId) {
+        userService.findById(userId);
         Comment comment = findCommentById(comId);
         Set<Long> rating = comment.getRating();
         if (rating.contains(userId)) {
@@ -306,6 +304,7 @@ public class EventService implements EventSrv {
 
     @Override
     public void removeLike(long userId, long eventId, long comId) {
+        userService.findById(userId);
         Comment comment = findCommentById(comId);
         Set<Long> rating = comment.getRating();
         if (rating.contains(userId)) {
@@ -318,32 +317,31 @@ public class EventService implements EventSrv {
     }
 
     @Override
-    public List<CommentDto> getComments(long userId, long eventId, String sort, int from, int size) {
-        StringBuilder q = new StringBuilder();
-        q.append("select c from Comment c where c.eventId =:eventId order by ");
+    public List<CommentDto> getComments(long userId, long eventId, Comment.SortComment sort, int from, int size) {
+        Sort sorting = null;
         switch (sort) {
-            case "RATING":
-                q.append("c.rating.size desc");
+            case RATING:
+                sorting = Sort.by(Sort.Direction.valueOf("DESC"), "rating");
                 break;
-            case "NEW_DATE":
-                q.append("c.createdOn asc");
+            case NEW_DATE:
+                sorting = Sort.by(Sort.Direction.valueOf("ASC"), "createdOn");
                 break;
-            case "OLD_DATE":
-                q.append("c.createdOn desc");
+            case OLD_DATE:
+                sorting = Sort.by(Sort.Direction.valueOf("DESC"), "createdOn");
         }
-
-        TypedQuery<Comment> query = em.createQuery(q.toString(), Comment.class);
-        List<Comment> comments = query.setParameter("eventId", eventId)
-                .setMaxResults(size)
-                .setFirstResult(from)
-                .getResultList();
+        Pageable pageable = PageRequest.of(from / size, size, sorting);
+        Page<Comment> comments = commentRepository.findAllByEventId(eventId, pageable);
         return comments.stream().map(EventMapper::toCommentDto).collect(Collectors.toList());
     }
 
     @Override
     public void deleteComment(long userId, long eventId, long comId) {
-        findCommentById(comId);
-        commentRepository.deleteById(comId);
+        Comment comment = findCommentById(comId);
+        if (comment.getAuthor().getId() == userId) {
+            commentRepository.deleteById(comId);
+        } else {
+            throw new ValidationException("only the author can delete a comment");
+        }
     }
 
     @Override

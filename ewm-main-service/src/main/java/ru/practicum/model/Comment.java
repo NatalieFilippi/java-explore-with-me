@@ -30,4 +30,10 @@ public class Comment {
     @ElementCollection
     @CollectionTable(name = "ratings", joinColumns = @JoinColumn(name = "comment_id"))
     private Set<Long> rating;
+
+    public enum SortComment {
+        OLD_DATE,
+        NEW_DATE,
+        RATING
+    }
 }

@@ -42,5 +42,5 @@ public interface EventSrv {
 
     void removeLike(long userId, long eventId, long comId);
 
-    List<CommentDto> getComments(long userId, long eventId, String sort, int from, int size);
+    List<CommentDto> getComments(long userId, long eventId, Comment.SortComment sort, int from, int size);
 }
