@@ -12,10 +12,7 @@ import ru.practicum.services.EventSrv;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.*;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -172,7 +169,7 @@ public class EventController {
     public CommentDto updateComment(@PathVariable long userId,
                                     @PathVariable long eventId,
                                     @PathVariable long comId,
-                                    @Min(2) @Max(2000) @RequestParam String text) {
+                                    @Size(min = 2) @Size(max = 2000) @RequestParam String text) {
         log.info("User with id = {} updated a comment {} to the event {}", userId, comId, eventId);
         return service.updateComment(userId, eventId, comId, text);
     }
