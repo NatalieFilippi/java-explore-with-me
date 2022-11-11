@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.EventClient;
 import ru.practicum.dao.CategoryRepository;
+import ru.practicum.dao.CommentRepository;
 import ru.practicum.dao.EventRepository;
 import ru.practicum.dto.*;
 import ru.practicum.exception.ObjectNotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mappers.EventMapper;
 import ru.practicum.model.Category;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
@@ -31,11 +33,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventService implements EventSrv {
     private final EventRepository eventRepository;
+    private final CommentRepository commentRepository;
     private final UserSrv userService;
     private final CategoryRepository categoryRepository;
     private final EventClient client;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
 
     @Override
     public EventFullDto findById(long eventId) {
@@ -264,6 +266,95 @@ public class EventService implements EventSrv {
         event.setPaid(eventDto.isPaid());
         event.setRequestModeration(eventDto.isRequestModeration());
         return EventMapper.toEventFullDto(eventRepository.save(event));
+    }
+
+    @Override
+    public CommentDto addComment(long userId, long eventId, NewCommentDto commentDto) {
+        User user = userService.findById(userId);
+        getEvent(eventId);
+        Comment newComment = new Comment();
+        newComment.setText(commentDto.getText());
+        newComment.setEventId(eventId);
+        newComment.setAuthor(user);
+        newComment.setCreatedOn(LocalDateTime.now());
+        newComment.setRating(new HashSet<>());
+        commentRepository.save(newComment);
+        return EventMapper.toCommentDto(newComment);
+    }
+
+    public Comment findCommentById(long comId) {
+        return commentRepository
+                .findById(comId)
+                .orElseThrow(() -> new ObjectNotFoundException("Comment with id=" + comId + " was not found."));
+    }
+
+    @Override
+    public void likeComment(long userId, long eventId, long comId) {
+        userService.findById(userId);
+        Comment comment = findCommentById(comId);
+        Set<Long> rating = comment.getRating();
+        if (rating.contains(userId)) {
+            throw new ValidationException("The user has already liked the comment");
+        } else {
+            rating.add(userId);
+            comment.setRating(rating);
+            commentRepository.save(comment);
+        }
+    }
+
+    @Override
+    public void removeLike(long userId, long eventId, long comId) {
+        userService.findById(userId);
+        Comment comment = findCommentById(comId);
+        Set<Long> rating = comment.getRating();
+        if (rating.contains(userId)) {
+            rating.remove(userId);
+            comment.setRating(rating);
+            commentRepository.save(comment);
+        } else {
+            throw new ValidationException("The user " + userId + " did not like the comment " + comId);
+        }
+    }
+
+    @Override
+    public List<CommentDto> getComments(long userId, long eventId, Comment.SortComment sort, int from, int size) {
+        Sort sorting = null;
+        switch (sort) {
+            case RATING:
+                sorting = Sort.by(Sort.Direction.valueOf("DESC"), "rating");
+                break;
+            case NEW_DATE:
+                sorting = Sort.by(Sort.Direction.valueOf("ASC"), "createdOn");
+                break;
+            case OLD_DATE:
+                sorting = Sort.by(Sort.Direction.valueOf("DESC"), "createdOn");
+        }
+        Pageable pageable = PageRequest.of(from / size, size, sorting);
+        Page<Comment> comments = commentRepository.findAllByEventId(eventId, pageable);
+        return comments.stream().map(EventMapper::toCommentDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteComment(long userId, long eventId, long comId) {
+        Comment comment = findCommentById(comId);
+        if (comment.getAuthor().getId() == userId) {
+            commentRepository.deleteById(comId);
+        } else {
+            throw new ValidationException("only the author can delete a comment");
+        }
+    }
+
+    @Override
+    public CommentDto updateComment(long userId, long eventId, long comId, String text) {
+        User user = userService.findById(userId);
+        Comment comment = findCommentById(comId);
+        if (comment.getAuthor() == user) {
+            comment.setText(text);
+            commentRepository.save(comment);
+            return EventMapper.toCommentDto(comment);
+        } else {
+            throw new ValidationException("Only the author of the comment can change the comment");
+        }
     }
 
     @Override

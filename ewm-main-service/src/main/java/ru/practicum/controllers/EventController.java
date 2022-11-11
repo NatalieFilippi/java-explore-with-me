@@ -2,16 +2,17 @@ package ru.practicum.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.EventClient;
 import ru.practicum.dto.*;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.services.EventSrv;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.*;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@Validated
 public class EventController {
 
     private final EventSrv service;
@@ -34,10 +36,10 @@ public class EventController {
     public List<EventShortDto> getEvents(HttpServletRequest request,
                                          @RequestParam(required = false, defaultValue = "") String text,
                                          @RequestParam(required = false, defaultValue = "") List<Long> categories,
-                                         @RequestParam(required = false, defaultValue = "false") boolean paid,
+                                         @RequestParam(required = false) boolean paid,
                                          @RequestParam(required = false, defaultValue = "") String rangeStart,
                                          @RequestParam(required = false, defaultValue = "") String rangeEnd,
-                                         @RequestParam(required = false, defaultValue = "false") boolean onlyAvailable,
+                                         @RequestParam(required = false) boolean onlyAvailable,
                                          @RequestParam(required = false, defaultValue = "EVENT_DATE") String sort,
                                          @PositiveOrZero @RequestParam(required = false, defaultValue = "0") int from,
                                          @Positive @RequestParam(required = false, defaultValue = "10") int size) throws UnsupportedEncodingException {
@@ -142,4 +144,60 @@ public class EventController {
         log.info("Admin update event with id={}", eventId);
         return service.adminUpdateEvent(eventId, eventDto);
     }
+
+    /*
+    Комментарии
+     */
+
+    @PostMapping("/users/{userId}/events/{eventId}/comments")
+    public CommentDto addComment(@PathVariable long userId,
+                                 @PathVariable long eventId,
+                                 @Valid @RequestBody NewCommentDto commentDto) {
+        log.info("User with id = {} added a comment {} to the event {}", userId, commentDto, eventId);
+        return service.addComment(userId, eventId, commentDto);
+    }
+
+    @DeleteMapping("/users/{userId}/events/{eventId}/comments/{comId}")
+    public void deleteComment(@PathVariable long userId,
+                              @PathVariable long eventId,
+                              @PathVariable long comId) {
+        log.info("User with id = {} deleted a comment {} to the event {}", userId, comId, eventId);
+        service.deleteComment(userId, eventId, comId);
+    }
+
+    @PatchMapping("/users/{userId}/events/{eventId}/comments/{comId}")
+    public CommentDto updateComment(@PathVariable long userId,
+                                    @PathVariable long eventId,
+                                    @PathVariable long comId,
+                                    @Size(min = 2) @Size(max = 2000) @RequestParam String text) {
+        log.info("User with id = {} updated a comment {} to the event {}", userId, comId, eventId);
+        return service.updateComment(userId, eventId, comId, text);
+    }
+
+    @PostMapping("/users/{userId}/events/{eventId}/comments/{comId}/like")
+    public void likeComment(@PathVariable long userId,
+                            @PathVariable long eventId,
+                            @PathVariable long comId) {
+        log.info("User with id = {} liked the comment {} to the event {}", userId, comId, eventId);
+        service.likeComment(userId, eventId, comId);
+    }
+
+    @DeleteMapping("/users/{userId}/events/{eventId}/comments/{comId}/like")
+    public void removeLike(@PathVariable long userId,
+                           @PathVariable long eventId,
+                           @PathVariable long comId) {
+        log.info("User with id = {} removed like the comment {} to the event {}", userId, comId, eventId);
+        service.removeLike(userId, eventId, comId);
+    }
+
+    @GetMapping("/users/{userId}/events/{eventId}/comments")
+    public List<CommentDto> getComments(@PathVariable long userId,
+                                        @PathVariable long eventId,
+                                        @RequestParam(defaultValue = "RATING") Comment.SortComment sort, //{VALUE=OLD_DATE, NEW_DATE, RATING}
+                                        @PositiveOrZero @RequestParam(defaultValue = "0") int from,
+                                        @Positive @RequestParam(defaultValue = "10") int size) {
+        log.info("Get event {} comments with sort = {}, from = {}, size = {} by user {}", eventId, sort, from, size, userId);
+        return service.getComments(userId, eventId, sort, from, size);
+    }
+
 }

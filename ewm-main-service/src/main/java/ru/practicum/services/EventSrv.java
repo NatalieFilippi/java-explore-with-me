@@ -1,6 +1,7 @@
 package ru.practicum.services;
 
 import ru.practicum.dto.*;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 
 import java.io.UnsupportedEncodingException;
@@ -28,4 +29,18 @@ public interface EventSrv {
     EventFullDto rejectEvent(long eventId);
 
     EventFullDto adminUpdateEvent(long eventId, AdminUpdateEventRequest eventDto);
+
+    CommentDto addComment(long userId, long eventId, NewCommentDto commentDto);
+
+    void deleteComment(long userId, long eventId, long comId);
+
+    CommentDto updateComment(long userId, long eventId, long comId, String text);
+
+    Comment findCommentById(long id);
+
+    void likeComment(long userId, long eventId, long comId);
+
+    void removeLike(long userId, long eventId, long comId);
+
+    List<CommentDto> getComments(long userId, long eventId, Comment.SortComment sort, int from, int size);
 }
